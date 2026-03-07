@@ -1,0 +1,1887 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>プロジェクト逆引き技術教科書</title>
+<meta name="description" content="40+プロジェクトの技術を逆引きで学べるインタラクティブ教科書">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Noto+Sans+JP:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#08090d;--bg2:#0f1117;--bg3:#161822;--bg4:#1e2030;
+--text:#e0e0e0;--text2:#a0a0b0;--border:#2a2d3a;
+--front:#5bb8f5;--back:#a78bfa;--api:#f59e42;--infra:#6ee7b7;
+--media:#f472b6;--gpu:#f87171;--ai:#e879f9;--mobile:#fb923c;--ext:#818cf8;
+--accent:#5bb8f5;
+}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;min-height:100vh}
+code,.mono{font-family:'JetBrains Mono',monospace}
+a{color:var(--accent);text-decoration:none}
+.container{max-width:960px;margin:0 auto;padding:0 16px}
+
+/* Header */
+.site-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:24px 0;text-align:center}
+.site-header h1{font-size:1.5rem;font-weight:700;background:linear-gradient(135deg,var(--front),var(--ai));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.site-header p{color:var(--text2);font-size:.85rem;margin-top:4px}
+
+/* Search */
+.search-wrap{padding:16px 0}
+.search-wrap input{width:100%;padding:10px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.95rem;outline:none;font-family:'Noto Sans JP',sans-serif}
+.search-wrap input:focus{border-color:var(--accent)}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);padding:0}
+.tabs button{flex:1;padding:12px 8px;background:none;border:none;color:var(--text2);font-size:.9rem;cursor:pointer;border-bottom:2px solid transparent;font-family:'Noto Sans JP',sans-serif;transition:.2s}
+.tabs button.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tabs button:hover{color:var(--text)}
+.tab-content{display:none;padding:20px 0}
+.tab-content.active{display:block}
+
+/* Category */
+.category{margin-bottom:32px}
+.category-title{font-size:1.1rem;font-weight:700;padding:12px 0;border-bottom:1px solid var(--border);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.category-title .emoji{font-size:1.3rem}
+
+/* Accordion */
+.accordion{background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden}
+.accordion.hidden{display:none}
+.acc-header{padding:14px 18px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;transition:.15s}
+.acc-header:hover{background:var(--bg3)}
+.acc-header h3{font-size:.95rem;font-weight:600}
+.acc-header .desc{color:var(--text2);font-size:.8rem;margin-top:2px}
+.acc-header .arrow{color:var(--text2);transition:.3s;font-size:.8rem}
+.accordion.open .acc-header .arrow{transform:rotate(180deg)}
+.acc-body{max-height:0;overflow:hidden;transition:max-height .35s ease}
+.accordion.open .acc-body{max-height:none}
+.acc-inner{padding:0 18px 18px}
+
+/* Architecture Flow */
+.flow-section{margin-bottom:16px}
+.flow-section h4{font-size:.85rem;color:var(--text2);margin-bottom:10px}
+.flow-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:8px}
+.flow-node{padding:6px 12px;border-radius:6px;font-size:.78rem;font-weight:600;white-space:nowrap}
+.flow-node.front{background:rgba(91,184,245,.15);color:var(--front);border:1px solid rgba(91,184,245,.3)}
+.flow-node.back{background:rgba(167,139,250,.15);color:var(--back);border:1px solid rgba(167,139,250,.3)}
+.flow-node.api{background:rgba(245,158,66,.15);color:var(--api);border:1px solid rgba(245,158,66,.3)}
+.flow-node.infra{background:rgba(110,231,183,.15);color:var(--infra);border:1px solid rgba(110,231,183,.3)}
+.flow-node.media{background:rgba(244,114,182,.15);color:var(--media);border:1px solid rgba(244,114,182,.3)}
+.flow-node.gpu{background:rgba(248,113,113,.15);color:var(--gpu);border:1px solid rgba(248,113,113,.3)}
+.flow-node.ai{background:rgba(232,121,249,.15);color:var(--ai);border:1px solid rgba(232,121,249,.3)}
+.flow-node.mobile{background:rgba(251,146,60,.15);color:var(--mobile);border:1px solid rgba(251,146,60,.3)}
+.flow-node.ext{background:rgba(129,140,248,.15);color:var(--ext);border:1px solid rgba(129,140,248,.3)}
+.flow-node.user{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2)}
+.flow-arrow{color:var(--text2);font-size:.85rem}
+.flow-bidir{color:var(--text2);font-size:.85rem}
+
+/* Tech List */
+.tech-list{display:flex;flex-direction:column;gap:10px}
+.tech-item{background:var(--bg3);border-radius:8px;padding:12px 14px}
+.tech-name{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:.85rem}
+.tech-tag{display:inline-block;padding:1px 8px;border-radius:4px;font-size:.7rem;font-weight:600;margin-left:8px;vertical-align:middle}
+.tag-front{background:rgba(91,184,245,.2);color:var(--front)}
+.tag-back{background:rgba(167,139,250,.2);color:var(--back)}
+.tag-api{background:rgba(245,158,66,.2);color:var(--api)}
+.tag-infra{background:rgba(110,231,183,.2);color:var(--infra)}
+.tag-media{background:rgba(244,114,182,.2);color:var(--media)}
+.tag-gpu{background:rgba(248,113,113,.2);color:var(--gpu)}
+.tag-ai{background:rgba(232,121,249,.2);color:var(--ai)}
+.tag-mobile{background:rgba(251,146,60,.2);color:var(--mobile)}
+.tag-ext{background:rgba(129,140,248,.2);color:var(--ext)}
+.tech-role{color:var(--text);font-size:.83rem;margin-top:4px}
+.tech-explain{color:var(--text2);font-size:.8rem;margin-top:4px;padding-left:12px;border-left:2px solid var(--border)}
+
+/* Dictionary (Tab2) */
+.dict-item{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:10px}
+.dict-item.hidden{display:none}
+.dict-term{font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:600}
+.dict-what{margin-top:6px;font-size:.85rem}
+.dict-metaphor{margin-top:4px;font-size:.83rem;color:var(--text2);font-style:italic}
+.dict-projects{margin-top:6px;font-size:.82rem;display:flex;flex-wrap:wrap;gap:4px}
+.dict-projects a{background:var(--bg3);padding:2px 8px;border-radius:4px;font-size:.78rem;cursor:pointer}
+.dict-projects a:hover{background:var(--bg4)}
+
+/* Pattern (Tab3) */
+.pattern{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px}
+.pattern.hidden{display:none}
+.pattern h3{font-size:1rem;font-weight:700;margin-bottom:8px}
+.pattern h4{font-size:.88rem;color:var(--text2);margin:12px 0 6px}
+.pattern p,.pattern li{font-size:.85rem;line-height:1.7}
+.pattern ul{padding-left:20px}
+.pattern .pattern-flow{margin:10px 0}
+
+/* Responsive */
+@media(max-width:640px){
+.tabs button{font-size:.78rem;padding:10px 4px}
+.acc-header{padding:12px 14px}
+.acc-inner{padding:0 14px 14px}
+.flow-row{gap:4px}
+.flow-node{font-size:.7rem;padding:4px 8px}
+.site-header h1{font-size:1.2rem}
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+<div class="container">
+<h1>プロジェクト逆引き技術教科書</h1>
+<p>40+プロジェクトで使った技術を逆引きで学ぶ</p>
+</div>
+</header>
+
+<div class="container">
+<div class="search-wrap">
+<input type="text" id="searchInput" placeholder="技術名・プロジェクト名で検索...">
+</div>
+
+<div class="tabs">
+<button class="active" data-tab="tab1">プロジェクト逆引き</button>
+<button data-tab="tab2">用語辞書</button>
+<button data-tab="tab3">設計パターン集</button>
+</div>
+
+<!-- TAB1: プロジェクト逆引き -->
+<div id="tab1" class="tab-content active">
+<!-- カテゴリ1: AI生成コンテンツ -->
+<div class="category">
+<div class="category-title"><span class="emoji">🤖</span> AI生成コンテンツ</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>生成新聞</h3><div class="desc">AIが毎朝・毎夕、新聞を自動生成するサブスク型ニュースサービス（月額$3）</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node api">RSS / Stooq / Open-Meteo</span><span class="flow-arrow">→</span>
+<span class="flow-node back">Cloudflare Workers</span><span class="flow-arrow">→</span>
+<span class="flow-node ai">Claude API</span><span class="flow-arrow">→</span>
+<span class="flow-node front">React (PWA)</span><span class="flow-arrow">→</span>
+<span class="flow-node user">読者</span>
+</div>
+<div class="flow-row">
+<span class="flow-node infra">Stripe</span><span class="flow-arrow">→</span>
+<span class="flow-node back">Workers (Webhook)</span><span class="flow-arrow">→</span>
+<span class="flow-node api">Resend</span><span class="flow-arrow">→</span>
+<span class="flow-node user">メール配信</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">Cloudflare Workers</span><span class="tech-tag tag-back">バック</span>
+<div class="tech-role">RSSフィード・株価・天気データを収集し、Claude APIに渡して新聞記事を生成するサーバー側の処理を担当</div>
+<div class="tech-explain">💡 要するに：自分のサーバーを持たずに、間借りで関数だけを動かす仕組み。リクエストが来たときだけ動くので安い。</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">Claude API</span><span class="tech-tag tag-ai">AI</span>
+<div class="tech-role">収集したRSSデータを新聞の文体で記事に変換。朝刊・夕刊それぞれ異なるプロンプトで生成</div>
+<div class="tech-explain">💡 要するに：AIに「こんな文章を書いて」と指示を出して、文章を自動生成してもらうAPI。プログラムからAIを呼び出す窓口。</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">React (PWA)</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">新聞の段組みレイアウトを構築。PWA化でスマホのホーム画面に追加可能</div>
+<div class="tech-explain">💡 要するに：HTMLを効率よく組み立てるための設計図の書き方。部品（コンポーネント）を組み合わせてページを作る。</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">Stripe</span><span class="tech-tag tag-infra">インフラ</span>
+<div class="tech-role">月額$3のサブスクリプション決済を処理。Webhookで支払い完了をWorkersに通知</div>
+<div class="tech-explain">💡 要するに：クレジットカード決済を代行してくれるサービス。自分で決済システムを作らなくていい。</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">Resend</span><span class="tech-tag tag-api">API</span>
+<div class="tech-role">有料会員にメールで新聞を配信</div>
+<div class="tech-explain">💡 要するに：プログラムからメールを送るためのサービス。Gmailの送信ボタンの代わりにAPIで送る。</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">RSS</span><span class="tech-tag tag-api">API</span>
+<div class="tech-role">はてブ・artscape・CINRA等のニュースフィードからリアルデータを取得</div>
+<div class="tech-explain">💡 要するに：Webサイトの更新情報を機械が読みやすい形式で配信する仕組み。新聞の切り抜きサービスのようなもの。</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">Open-Meteo API</span><span class="tech-tag tag-api">API</span>
+<div class="tech-role">天気予報データを取得して天気コーナーに表示</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">Stooq CSV</span><span class="tech-tag tag-api">API</span>
+<div class="tech-role">株価・為替データを取得してティッカー表示</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>台灣生成新聞</h3><div class="desc">台湾に特化したAIニュースプラットフォーム。8つの台湾メディアを集約</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node api">台湾メディア8社 RSS</span><span class="flow-arrow">→</span>
+<span class="flow-node back">Next.js API Routes</span><span class="flow-arrow">→</span>
+<span class="flow-node ai">Claude API</span><span class="flow-arrow">→</span>
+<span class="flow-node back">Upstash Redis</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Next.js</span>
+</div>
+<div class="flow-row">
+<span class="flow-node infra">Vercel Cron</span><span class="flow-arrow">→</span>
+<span class="flow-node back">定時生成</span><span class="flow-arrow">→</span>
+<span class="flow-node api">Resend</span><span class="flow-arrow">→</span>
+<span class="flow-node user">読者</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">Next.js</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">TypeScriptで台湾ニュースの一覧・詳細ページを構築。APIルートでバックエンド処理も兼任</div>
+<div class="tech-explain">💡 要するに：Reactの上に「ルーティング」「サーバー処理」「画像最適化」などの便利機能を足したフレームワーク。</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">Upstash Redis</span><span class="tech-tag tag-back">バック</span>
+<div class="tech-role">生成した記事をキャッシュとして保存。毎回AIを呼ばなくても表示できる</div>
+<div class="tech-explain">💡 要するに：データを高速に読み書きできる「メモ帳」のようなデータベース。サーバーレスで使える。</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">Vercel Cron</span><span class="tech-tag tag-infra">インフラ</span>
+<div class="tech-role">毎日決まった時刻にニュース生成処理を自動実行</div>
+<div class="tech-explain">💡 要するに：目覚まし時計のように、決まった時間にプログラムを自動実行する仕組み。</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">Together AI</span><span class="tech-tag tag-ai">AI</span>
+<div class="tech-role">画像生成に利用</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>業界紙つくーる</h3><div class="desc">業種を指定するだけでAIが業界紙を自動生成するSaaS</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">LP → 決済</span><span class="flow-arrow">→</span>
+<span class="flow-node infra">Stripe Checkout</span><span class="flow-arrow">→</span>
+<span class="flow-node back">Workers (Webhook)</span><span class="flow-arrow">→</span>
+<span class="flow-node back">Workers KV</span>
+</div>
+<div class="flow-row">
+<span class="flow-node user">アンケート</span><span class="flow-arrow">→</span>
+<span class="flow-node ai">Claude API (web_search)</span><span class="flow-arrow">→</span>
+<span class="flow-node back">Workers</span><span class="flow-arrow">→</span>
+<span class="flow-node api">Resend</span><span class="flow-arrow">→</span>
+<span class="flow-node user">メール配信</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">Claude API (web_search)</span><span class="tech-tag tag-ai">AI</span>
+<div class="tech-role">業界のリアルタイム情報をWeb検索で取得しつつ、業界紙の記事を生成</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">Workers KV</span><span class="tech-tag tag-back">バック</span>
+<div class="tech-role">ユーザー情報・アンケート回答・生成済み記事を保存</div>
+<div class="tech-explain">💡 要するに：Cloudflare版のキーバリューストア。名前（キー）で値を保存・取得する簡易データベース。</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">Stripe Checkout / Webhook</span><span class="tech-tag tag-infra">インフラ</span>
+<div class="tech-role">決済ページへの誘導 → 支払い完了通知の受け取り → サービス有効化の一連の流れ</div>
+<div class="tech-explain">💡 要するに：Webhookは「イベントが起きたらURLに通知してくれる仕組み」。LINEの通知みたいなもの。</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>PROTOTIPER</h3><div class="desc">AIが毎日Webサイトのプロトタイプを自動生成して公開するショーケース</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node infra">Vercel Cron</span><span class="flow-arrow">→</span>
+<span class="flow-node ai">Claude API (Sonnet)</span><span class="flow-arrow">→</span>
+<span class="flow-node back">Vercel KV</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Next.js App Router</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">Next.js App Router</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">生成されたプロトタイプをギャラリー形式で表示。App Routerでページ構成</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">Claude API (Sonnet)</span><span class="tech-tag tag-ai">AI</span>
+<div class="tech-role">18種類のデザインスタイルテンプレートからランダムに選び、Webサイトのデザインを生成</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">Unsplash API</span><span class="tech-tag tag-api">API</span>
+<div class="tech-role">プロトタイプに使う写真素材を自動取得</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>占星新聞</h3><div class="desc">個人の星座に合わせたパーソナライズ占い新聞</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node api">OpenWeatherMap</span><span class="flow-arrow">→</span>
+<span class="flow-node back">Cloudflare Workers</span><span class="flow-arrow">→</span>
+<span class="flow-node ai">Claude API (Haiku)</span><span class="flow-arrow">→</span>
+<span class="flow-node back">Workers KV</span><span class="flow-arrow">→</span>
+<span class="flow-node front">PWA</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">Claude API (Haiku)</span><span class="tech-tag tag-ai">AI</span>
+<div class="tech-role">星座と天気データを元に、その日の占い記事をパーソナライズ生成</div>
+<div class="tech-explain">💡 HaikuはClaude APIの軽量モデル。速くて安いので、大量生成に向いている。</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">PWA</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">スマホのホーム画面に追加して、アプリのように使える新聞ビューア</div>
+<div class="tech-explain">💡 要するに：Webサイトをスマホアプリのように使える技術。ホーム画面に追加でき、オフラインでも動く。</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>KANJI ME</h3><div class="desc">英語の名前を漢字に変換して画像を生成する、バイラル型Webアプリ</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">名前入力</span><span class="flow-arrow">→</span>
+<span class="flow-node back">Next.js API</span><span class="flow-arrow">→</span>
+<span class="flow-node ai">Claude API (Haiku)</span><span class="flow-arrow">→</span>
+<span class="flow-node front">html2canvas</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Web Share API</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">html2canvas</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">漢字変換結果の画面をそのまま画像としてキャプチャ。SNSシェア用画像に変換</div>
+<div class="tech-explain">💡 要するに：HTMLで表示されている内容をスクリーンショットのように画像化するライブラリ。</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">Web Share API</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">生成した漢字画像をスマホのシェア機能（LINE・X等）で共有</div>
+<div class="tech-explain">💡 要するに：スマホの「共有」ボタンをWebサイトから呼び出す機能。アプリを選んで送れる。</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">ISR (Incremental Static Regeneration)</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">人気の名前100件を事前ビルドし、それ以外はアクセス時に生成してキャッシュ</div>
+<div class="tech-explain">💡 要するに：よく見られるページは先に作っておき、それ以外は必要になった時に作る仕組み。</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">next/og</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">名前ごとに動的にOGP画像（SNSでシェアした時のサムネイル）を生成</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>MONEY TRAIL</h3><div class="desc">商品の価格構造をAIが推定し、サンキーダイアグラムで可視化</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">商品名入力</span><span class="flow-arrow">→</span>
+<span class="flow-node back">Next.js API</span><span class="flow-arrow">→</span>
+<span class="flow-node ai">Claude API (Haiku)</span><span class="flow-arrow">→</span>
+<span class="flow-node front">D3.js Sankey</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Canvas</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">D3.js (Sankey Diagram)</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">AIが推定したコスト構造をサンキーダイアグラム（流れ図）として描画</div>
+<div class="tech-explain">💡 要するに：データを美しいグラフや図に変換するライブラリ。サンキーは「お金の流れ」のような分岐図。</div>
+</div>
+</div>
+</div></div>
+</div>
+
+</div>
+<!-- カテゴリ2: リアルタイム＆通信 -->
+<div class="category">
+<div class="category-title"><span class="emoji">🔄</span> リアルタイム＆通信</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>SYNC PAD</h3><div class="desc">ブラウザだけでP2P接続するリアルタイム共有ドラムマシン</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">ユーザーA</span><span class="flow-bidir">↔</span>
+<span class="flow-node back">PeerJS (WebRTC)</span><span class="flow-bidir">↔</span>
+<span class="flow-node user">ユーザーB</span>
+</div>
+<div class="flow-row">
+<span class="flow-node media">Web Audio API</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">WebRTC / PeerJS</span><span class="tech-tag tag-back">バック</span>
+<div class="tech-role">サーバーを介さず、ブラウザ同士を直接つないでドラムパッドの操作をリアルタイム同期</div>
+<div class="tech-explain">💡 要するに：電話のようにブラウザ同士を直接つなぐ技術。サーバーを経由しないので速い（P2P通信）。</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">Web Audio API</span><span class="tech-tag tag-media">メディア</span>
+<div class="tech-role">ドラム音をブラウザ上で精密なタイミングで再生</div>
+<div class="tech-explain">💡 要するに：ブラウザで音を生成・加工・再生するための仕組み。楽器アプリや音声エフェクトが作れる。</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">Cloudflare Durable Objects</span><span class="tech-tag tag-back">バック</span>
+<div class="tech-role">ルームの状態管理（参加者リスト等）を永続的に保持</div>
+<div class="tech-explain">💡 要するに：Cloudflare上でデータを「持ち続けられる」オブジェクト。チャットルームのように状態を保つ必要がある時に使う。</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>LIVE BOARD</h3><div class="desc">複数人がリアルタイムで描けるオンラインホワイトボード</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">描画操作</span><span class="flow-bidir">↔</span>
+<span class="flow-node back">WebSocket (Durable Objects)</span><span class="flow-bidir">↔</span>
+<span class="flow-node user">他のユーザー</span>
+</div>
+<div class="flow-row">
+<span class="flow-node front">Canvas 2D</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">WebSocket</span><span class="tech-tag tag-back">バック</span>
+<div class="tech-role">描画データをサーバー経由でリアルタイムに全員へ配信</div>
+<div class="tech-explain">💡 要するに：電話のようにつなぎっぱなしで双方向通信する仕組み。HTTPは「手紙」、WebSocketは「電話」。</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">Canvas 2D</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">ホワイトボードの描画面。マウスやタッチの軌跡をピクセル単位で描画</div>
+<div class="tech-explain">💡 要するに：ブラウザ上の画用紙。ピクセル単位で自由に絵を描ける。</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>NUISMO</h3><div class="desc">ぬいぐるみキャラが集まるバーチャル喫煙所</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">入室・移動操作</span><span class="flow-bidir">↔</span>
+<span class="flow-node back">Ably Realtime</span><span class="flow-bidir">↔</span>
+<span class="flow-node user">他のユーザー</span>
+</div>
+<div class="flow-row">
+<span class="flow-node front">Canvas パーティクル</span><span class="flow-arrow">+</span>
+<span class="flow-node media">Web Audio API</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">Ably Realtime</span><span class="tech-tag tag-back">バック</span>
+<div class="tech-role">Presence（在室管理）とPubSub（メッセージ配信）でキャラの位置をリアルタイム同期</div>
+<div class="tech-explain">💡 要するに：リアルタイム通信をマネージドで提供するサービス。自分でWebSocketサーバーを建てなくていい。</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">Next.js</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">5種類のぬいぐるみキャラの選択画面・ラウンジ画面を構築</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>We TASK</h3><div class="desc">チームのタスク進捗をリアルタイムで可視化するタスクボード</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">タスク操作</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Next.js</span><span class="flow-arrow">→</span>
+<span class="flow-node back">Upstash Redis</span>
+</div>
+<div class="flow-row">
+<span class="flow-node api">Chatwork API</span><span class="flow-arrow">→</span>
+<span class="flow-node front">ドラッグ&ドロップ</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">Chatwork API</span><span class="tech-tag tag-api">API</span>
+<div class="tech-role">タスクの更新をChatworkに通知連携</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">HTML Drag and Drop API</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">タスクカードをドラッグ&ドロップでステータス変更</div>
+<div class="tech-explain">💡 要するに：マウスで要素をつかんで別の場所に移動する操作をブラウザ標準で実現する仕組み。</div>
+</div>
+</div>
+</div></div>
+</div>
+
+</div>
+<!-- カテゴリ3: GPUグラフィックス -->
+<div class="category">
+<div class="category-title"><span class="emoji">🎮</span> GPUグラフィックス</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>FLUID NOISE</h3><div class="desc">音に反応して流体シミュレーションがうねるビジュアライザー</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node media">マイク / Web Audio API</span><span class="flow-arrow">→</span>
+<span class="flow-node front">JavaScript (周波数解析)</span><span class="flow-arrow">→</span>
+<span class="flow-node gpu">WebGL2 / GLSL</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Canvas</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">WebGL2</span><span class="tech-tag tag-gpu">GPU</span>
+<div class="tech-role">流体シミュレーションの計算と描画をGPUで高速に実行</div>
+<div class="tech-explain">💡 要するに：ブラウザからGPU（グラフィック用チップ）を使って高速に3D/2D描画する技術。ゲームのようなリッチな表現ができる。</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">GLSL シェーダー</span><span class="tech-tag tag-gpu">GPU</span>
+<div class="tech-role">流体の動き・色・テクスチャを計算するプログラムをGPUで実行</div>
+<div class="tech-explain">💡 要するに：GPUに渡すプログラムの言語。GPUは同じ計算を何万個も同時に実行するので、ピクセルごとの色計算が超高速。</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>SOUND COSMOS</h3><div class="desc">音楽を3D空間で可視化するビジュアライザー</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node media">Web Audio API (AnalyserNode)</span><span class="flow-arrow">→</span>
+<span class="flow-node gpu">Three.js</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Canvas (WebGL)</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">Three.js</span><span class="tech-tag tag-gpu">GPU</span>
+<div class="tech-role">音声データを3Dオブジェクト（球体・パーティクル等）の動きに変換して描画</div>
+<div class="tech-explain">💡 要するに：WebGLを簡単に使えるようにしたライブラリ。3Dの箱や球をJavaScriptで配置・動かせる。</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>PARTICLE STORM</h3><div class="desc">WebGPU Compute Shaderで100万パーティクルをリアルタイム描画</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node front">JavaScript (初期化)</span><span class="flow-arrow">→</span>
+<span class="flow-node gpu">WebGPU Compute Shader</span><span class="flow-arrow">→</span>
+<span class="flow-node gpu">WebGPU Render Pipeline</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Canvas</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">WebGPU</span><span class="tech-tag tag-gpu">GPU</span>
+<div class="tech-role">100万個のパーティクルの位置計算（Compute Shader）と描画（Render Pipeline）をすべてGPU上で実行</div>
+<div class="tech-explain">💡 要するに：WebGLの次世代版。CPUの代わりにGPU（グラフィック用チップ）に計算させる技術。より低レベルな制御ができる。</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">WGSL</span><span class="tech-tag tag-gpu">GPU</span>
+<div class="tech-role">パーティクルの物理演算（重力・衝突・速度）をGPUで並列計算するシェーダー言語</div>
+<div class="tech-explain">💡 要するに：WebGPU用のシェーダー言語。GLSLのWebGPU版。同じ計算を100万個同時に実行する。</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>BODY PARTICLES</h3><div class="desc">体の動きに20万個のパーティクルが反応するインタラクション</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">カメラ</span><span class="flow-arrow">→</span>
+<span class="flow-node ai">MediaPipe Pose</span><span class="flow-arrow">→</span>
+<span class="flow-node front">JavaScript</span><span class="flow-arrow">→</span>
+<span class="flow-node gpu">WebGPU Compute Shader</span><span class="flow-arrow">→</span>
+<span class="flow-node gpu">WebGPU Render</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">MediaPipe Pose Landmarker</span><span class="tech-tag tag-ai">AI</span>
+<div class="tech-role">カメラ映像から体の33箇所の関節位置をリアルタイム検出</div>
+<div class="tech-explain">💡 要するに：Googleが作ったAIモデル集。カメラ映像から顔や体のパーツを自動検出する。</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">WebGPU Compute Shader</span><span class="tech-tag tag-gpu">GPU</span>
+<div class="tech-role">20万個のパーティクルが体の関節に引き寄せられる物理演算をGPUで並列実行</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>STUDIO PAUL</h3><div class="desc">WebGL2とスクロールアニメーションを駆使したポートフォリオサイト</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">スクロール操作</span><span class="flow-arrow">→</span>
+<span class="flow-node front">CSS Scroll-Driven Animations</span><span class="flow-arrow">→</span>
+<span class="flow-node gpu">WebGL2 / GLSL</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Canvas</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">WebGL2 / GLSL</span><span class="tech-tag tag-gpu">GPU</span>
+<div class="tech-role">背景のビジュアルエフェクトをシェーダーで描画</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">CSS Scroll-Driven Animations</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">スクロール位置に連動してアニメーションを再生。JSなしでスクロール演出が可能</div>
+<div class="tech-explain">💡 要するに：スクロールするとアニメーションが動くCSS機能。JavaScriptを使わずにスクロール演出ができる。</div>
+</div>
+</div>
+</div></div>
+</div>
+
+</div>
+
+<!-- カテゴリ4: AI × カメラ -->
+<div class="category">
+<div class="category-title"><span class="emoji">📸</span> AI × カメラ</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>AIR SYNTH</h3><div class="desc">手のジェスチャーで音を演奏するエアシンセサイザー</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">カメラ</span><span class="flow-arrow">→</span>
+<span class="flow-node ai">TensorFlow.js (Hand Detection)</span><span class="flow-arrow">→</span>
+<span class="flow-node front">JavaScript (座標→音程変換)</span><span class="flow-arrow">→</span>
+<span class="flow-node media">Web Audio API</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">TensorFlow.js</span><span class="tech-tag tag-ai">AI</span>
+<div class="tech-role">カメラ映像から手の位置・形を検出し、ジェスチャーを認識</div>
+<div class="tech-explain">💡 要するに：Googleの機械学習ライブラリのブラウザ版。カメラ映像をAIでリアルタイム分析できる。</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">Web Audio API</span><span class="tech-tag tag-media">メディア</span>
+<div class="tech-role">手の位置（Y座標→音程、X座標→音量）に応じてシンセサイザー音を生成</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>FACE MIRROR</h3><div class="desc">顔の468点のランドマークを検出してエフェクトをかけるリアルタイムアプリ</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">カメラ</span><span class="flow-arrow">→</span>
+<span class="flow-node ai">MediaPipe Face Landmarker</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Canvas 2D (4エフェクト)</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">MediaPipe Face Landmarker</span><span class="tech-tag tag-ai">AI</span>
+<div class="tech-role">顔の468個の特徴点（目、鼻、口、輪郭等）をリアルタイム検出</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">Canvas 2D</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">検出した顔の特徴点を元に4種類のエフェクト（メッシュ、マスク等）を描画</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>LIQUID WALL</h3><div class="desc">人物の背景を流体シミュレーションに置き換えるWeb会議用背景</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">カメラ</span><span class="flow-arrow">→</span>
+<span class="flow-node ai">MediaPipe Image Segmenter</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Canvas 2D (合成)</span>
+</div>
+<div class="flow-row">
+<span class="flow-node front">流体シミュレーション</span><span class="flow-arrow">→</span>
+<span class="flow-node front">背景レイヤー</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">MediaPipe Image Segmenter</span><span class="tech-tag tag-ai">AI</span>
+<div class="tech-role">カメラ映像から人物と背景を分離（セグメンテーション）</div>
+<div class="tech-explain">💡 要するに：写真の中の「人」と「背景」を自動で切り分けるAI。Zoomのバーチャル背景と同じ原理。</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>DARK SCANNER</h3><div class="desc">軍事HUD風のスキャンエフェクトを映像に重ねるカメラアプリ</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">カメラ</span><span class="flow-arrow">→</span>
+<span class="flow-node ai">MediaPipe (Face/Pose/Object)</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Canvas 2D (HUDオーバーレイ)</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">MediaPipe (複数モデル)</span><span class="tech-tag tag-ai">AI</span>
+<div class="tech-role">顔検出・姿勢推定・物体検出の3つのAIモデルを同時実行し、HUD表示の元データを生成</div>
+</div>
+</div>
+</div></div>
+</div>
+
+</div>
+<!-- カテゴリ5: ブラウザAPI実験 -->
+<div class="category">
+<div class="category-title"><span class="emoji">🧪</span> ブラウザAPI実験</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>SCROLL STAGE</h3><div class="desc">スクロール駆動アニメーションのショーケース</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">スクロール操作</span><span class="flow-arrow">→</span>
+<span class="flow-node front">CSS Scroll-Driven Animations</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Intersection Observer</span><span class="flow-arrow">→</span>
+<span class="flow-node front">DOM要素のアニメーション</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">CSS Scroll-Driven Animations</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">スクロール位置をタイムラインとしてCSSアニメーションを制御するデモ集</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">Intersection Observer</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">要素が画面内に入ったことを検知してアニメーションを発火</div>
+<div class="tech-explain">💡 要するに：「この要素が画面に見えた？」を自動で教えてくれる仕組み。スクロールで要素を出現させる時に使う。</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>MOTION LAB</h3><div class="desc">Web Animations APIの実験ラボ</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">操作パネル</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Web Animations API (WAAPI)</span><span class="flow-arrow">→</span>
+<span class="flow-node front">DOM要素</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">Web Animations API (WAAPI)</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">JavaScriptからアニメーションを精密に制御（再生・停止・速度変更・逆再生）するデモ</div>
+<div class="tech-explain">💡 要するに：CSSアニメーションをJavaScriptから操作する仕組み。再生・一時停止・巻き戻しなどが自由にできる。</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>COMPONENT KIT</h3><div class="desc">再利用可能なUIコンポーネントライブラリ</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node front">Custom Elements v1</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Shadow DOM</span><span class="flow-arrow">→</span>
+<span class="flow-node front">独立したUI部品</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">Web Components / Shadow DOM</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">ReactやVueを使わず、ブラウザ標準機能だけで再利用可能なUI部品を作成</div>
+<div class="tech-explain">💡 要するに：HTMLの独自タグを作れる仕組み。Shadow DOMで部品の中身を外から影響されないように隔離できる。</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>KANBAN FLOW</h3><div class="desc">ドラッグ&ドロップでタスクを管理するカンバンボード</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">ドラッグ操作</span><span class="flow-arrow">→</span>
+<span class="flow-node front">HTML Drag and Drop API</span><span class="flow-arrow">→</span>
+<span class="flow-node front">View Transitions API</span><span class="flow-arrow">→</span>
+<span class="flow-node front">DOM更新</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">View Transitions API</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">カードの移動時にスムーズなアニメーション遷移を実現</div>
+<div class="tech-explain">💡 要するに：画面の切り替えやDOM変更にアニメーションを自動で付ける新しいブラウザAPI。</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>FRACTAL DIVE</h3><div class="desc">マンデルブロ集合を無限にズームできるフラクタル探索アプリ</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">ズーム・パン操作</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Web Workers (並列計算)</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Canvas API</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">Web Workers</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">フラクタルの重い数値計算をメインスレッドとは別のスレッドで並列実行</div>
+<div class="tech-explain">💡 要するに：メインの処理を邪魔しないように、裏で重い計算を任せる仕組み。画面がカクつかない。</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>VOICE MEMO</h3><div class="desc">音声をテキストに変換して保存するブラウザ完結型メモアプリ</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">マイク</span><span class="flow-arrow">→</span>
+<span class="flow-node media">Web Speech API</span><span class="flow-arrow">→</span>
+<span class="flow-node front">テキスト変換</span><span class="flow-arrow">→</span>
+<span class="flow-node front">IndexedDB</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">Web Speech API</span><span class="tech-tag tag-media">メディア</span>
+<div class="tech-role">マイクからの音声をリアルタイムでテキストに変換（音声認識）</div>
+<div class="tech-explain">💡 要するに：「OK Google」のように、声をテキストに変換するブラウザ内蔵の音声認識機能。</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">IndexedDB</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">変換したテキストメモをブラウザ内のデータベースに永続保存</div>
+<div class="tech-explain">💡 要するに：ブラウザ内にあるデータベース。ページを閉じてもデータが残る。localStorageより大容量。</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>FOLDER VISION</h3><div class="desc">パソコンのフォルダ構造を美しいツリーマップで可視化</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">フォルダ選択</span><span class="flow-arrow">→</span>
+<span class="flow-node front">File System Access API</span><span class="flow-arrow">→</span>
+<span class="flow-node front">D3.js (treemap/sunburst/pack)</span><span class="flow-arrow">→</span>
+<span class="flow-node front">SVG描画</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">File System Access API</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">ユーザーのローカルフォルダを読み取り、ファイル構造をスキャン</div>
+<div class="tech-explain">💡 要するに：WebサイトからパソコンのファイルやフォルダにアクセスできるAPI。ユーザーの許可が必要。</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">D3.js (レイアウト)</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">ファイル構造をtreemap・sunburst・packの3種類のレイアウトで可視化</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>PIXEL DODGE</h3><div class="desc">レトロドット絵スタイルの弾幕回避ゲーム</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">キーボード操作</span><span class="flow-arrow">→</span>
+<span class="flow-node front">ゲームループ (requestAnimationFrame)</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Canvas 2D</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">Canvas 2D + ゲームループ</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">60FPSでキャラ・弾・背景を毎フレーム再描画するゲームエンジン</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>INFINITE WINDOW</h3><div class="desc">Windows 98のGDIバグ（ウィンドウの残像）を再現するシミュレーター</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">ドラッグ操作</span><span class="flow-arrow">→</span>
+<span class="flow-node front">JavaScript (DOM複製)</span><span class="flow-arrow">→</span>
+<span class="flow-node front">残像の蓄積表示</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">Vanilla JavaScript</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">ウィンドウのドラッグに応じてDOM要素を複製し、残像アーティファクトを蓄積表示</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>Silent Call</h3><div class="desc">飲食店で声を出さずに店員を呼べるサイレントコールシステム</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">画面タップ</span><span class="flow-arrow">→</span>
+<span class="flow-node front">React (縦書きUI)</span><span class="flow-arrow">→</span>
+<span class="flow-node media">navigator.vibrate()</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">CSS writing-mode: vertical-rl</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">日本の飲食店に合わせた縦書きUIを実現</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">Vibration API</span><span class="tech-tag tag-media">メディア</span>
+<div class="tech-role">呼び出し時にスマホを振動させて触覚フィードバック</div>
+</div>
+</div>
+</div></div>
+</div>
+
+</div>
+<!-- カテゴリ6: メディア＆シェア -->
+<div class="category">
+<div class="category-title"><span class="emoji">🎬</span> メディア＆シェア</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>PUNCH PUNCH PUNCH</h3><div class="desc">TikTok風の縦スワイプで無限にボクシング動画が流れるフィード</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node api">YouTube Data API v3</span><span class="flow-arrow">→</span>
+<span class="flow-node back">Vercel Serverless</span><span class="flow-arrow">→</span>
+<span class="flow-node front">React</span><span class="flow-arrow">→</span>
+<span class="flow-node api">YouTube IFrame Player API</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">YouTube Data API v3</span><span class="tech-tag tag-api">API</span>
+<div class="tech-role">ボクシング関連の動画を検索・取得</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">YouTube IFrame Player API</span><span class="tech-tag tag-api">API</span>
+<div class="tech-role">動画の再生・一時停止をJavaScriptから制御。スワイプで次の動画に切り替え</div>
+<div class="tech-explain">💡 要するに：YouTube動画をWebページに埋め込み、再生/停止などをプログラムで操作できる仕組み。</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>WORLD LIVE CAMERAS</h3><div class="desc">世界中のYouTubeライブカメラを一覧できるモニタリングダッシュボード</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node api">YouTube IFrame API</span><span class="flow-arrow">→</span>
+<span class="flow-node front">React (グリッド表示)</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Intl.DateTimeFormat</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">Intl.DateTimeFormat</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">各カメラの所在地のタイムゾーンに合わせた現地時刻を表示</div>
+<div class="tech-explain">💡 要するに：日付や時刻を各国の形式で表示するブラウザ内蔵の国際化機能。</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>SHEET MOVIE</h3><div class="desc">Google Sheetsのセルをモザイクに見立てて映像をオーバーレイするChrome拡張</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node ext">Chrome Extension (Manifest V3)</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Canvas 2D (映像解析)</span><span class="flow-arrow">→</span>
+<span class="flow-node front">セル色変更</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">Chrome Extension (Manifest V3)</span><span class="tech-tag tag-ext">拡張機能</span>
+<div class="tech-role">Google Sheetsページに映像オーバーレイ機能を注入するContent Script</div>
+<div class="tech-explain">💡 要するに：Chromeブラウザに独自機能を追加する拡張機能の最新規格。Webページの内容を読み書きできる。</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>KAFUN PARAPARA</h3><div class="desc">リアルタイム花粉情報をパーティクルで体感できるトラッカー</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node api">Open-Meteo API (花粉)</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Next.js 15</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Canvas パーティクル</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">Canvas パーティクルシステム</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">花粉量に応じてパーティクル数を変化させ、花粉の多さを視覚的に体感</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">Tailwind CSS v4</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">5段階の花粉アラートUIをユーティリティクラスで構築</div>
+<div class="tech-explain">💡 要するに：CSSをクラス名で書くフレームワーク。「text-red-500」のように書くだけで赤い文字になる。</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>走馬灯 SOMATO</h3><div class="desc">写真を選ぶだけで走馬灯風の動画を生成するブラウザ完結ツール</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">写真選択</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Canvas API (描画)</span><span class="flow-arrow">→</span>
+<span class="flow-node media">MediaRecorder</span><span class="flow-arrow">→</span>
+<span class="flow-node front">WebM動画</span>
+</div>
+<div class="flow-row">
+<span class="flow-node front">Web Workers (エンコード)</span><span class="flow-arrow">+</span>
+<span class="flow-node media">AudioContext (BGM)</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">MediaRecorder</span><span class="tech-tag tag-media">メディア</span>
+<div class="tech-role">Canvasの描画をリアルタイムで録画し、WebM動画ファイルとして出力</div>
+<div class="tech-explain">💡 要するに：ブラウザ上の映像や音声を録画できるAPI。画面の動きをそのまま動画ファイルにする。</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">Web Workers</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">動画エンコード処理をバックグラウンドで実行し、UIがフリーズしないようにする</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>COLOR THIEF</h3><div class="desc">Webページから色を抽出するChrome拡張機能</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node ext">Chrome Extension (Manifest V3)</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Canvas API (ピクセル解析)</span><span class="flow-arrow">→</span>
+<span class="flow-node front">カラーパレット表示</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">Canvas API</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">ページのスクリーンショットをCanvasに描画し、ピクセルデータから色を抽出</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>私を構成する3つの言葉</h3><div class="desc">3つの言葉を入力してシェア用画像を生成するジェネレーター</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">3つの言葉入力</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Canvas API (画像生成)</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Web Share API</span><span class="flow-arrow">→</span>
+<span class="flow-node user">SNSシェア</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">Next.js 16 (Static Export)</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">GitHub Pagesにデプロイ可能な静的HTMLとしてエクスポート</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">next/font/google</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">Google Fontsを最適化して読み込み、Canvas描画にも使用</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>テープ貼るやつ</h3><div class="desc">ブラウザ上でテプラ風のラベルを作成・配置・エクスポートできるツール</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">テキスト入力</span><span class="flow-arrow">→</span>
+<span class="flow-node front">React (テープ生成)</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Canvas API (配置・回転)</span><span class="flow-arrow">→</span>
+<span class="flow-node front">PNG エクスポート</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">React + TypeScript + Vite</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">8色・6サイズ・2フォントのテープ生成UIと、自由配置ボードの操作ロジック</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">Canvas API</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">ボード上のテープ配置をPNG画像としてエクスポート</div>
+</div>
+</div>
+</div></div>
+</div>
+
+</div>
+
+<!-- カテゴリ7: モバイル＆アプリ -->
+<div class="category">
+<div class="category-title"><span class="emoji">📱</span> モバイル＆アプリ</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>散歩記録 (Web版)</h3><div class="desc">GPSで歩いたルートを記録・表示するWebアプリ</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">歩行</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Geolocation API</span><span class="flow-arrow">→</span>
+<span class="flow-node back">Vercel KV</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Leaflet.js + OpenStreetMap</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">Web Geolocation API</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">スマホのGPSからリアルタイムで位置情報を取得し、移動ルートを記録</div>
+<div class="tech-explain">💡 要するに：ブラウザからスマホのGPS情報を取得するAPI。「現在地を使用しますか？」で許可するあれ。</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">Leaflet.js</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">記録したGPS座標を地図上にルートとして描画。複数ルートの重ね表示も対応</div>
+<div class="tech-explain">💡 要するに：Webページに地図を表示するための軽量ライブラリ。Google Mapsの無料代替。</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">OpenStreetMap</span><span class="tech-tag tag-api">API</span>
+<div class="tech-role">地図タイルの提供元。無料で使えるオープンソースの地図データ</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>散歩記録 Expo版</h3><div class="desc">Web版をiOSネイティブアプリに移植した散歩記録アプリ</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">歩行</span><span class="flow-arrow">→</span>
+<span class="flow-node mobile">expo-location (GPS)</span><span class="flow-arrow">→</span>
+<span class="flow-node mobile">react-native-maps</span><span class="flow-arrow">→</span>
+<span class="flow-node mobile">react-native-svg</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">React Native (Expo SDK 54)</span><span class="tech-tag tag-mobile">モバイル</span>
+<div class="tech-role">Reactの知識を流用してiOSネイティブアプリを構築</div>
+<div class="tech-explain">💡 要するに：Reactの書き方でiOS/Androidアプリを作れるフレームワーク。Expoはその開発環境を簡単にするツール。</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">expo-location</span><span class="tech-tag tag-mobile">モバイル</span>
+<div class="tech-role">バックグラウンドGPSトラッキングを実現。アプリを閉じても位置記録が続く</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">EAS Build</span><span class="tech-tag tag-mobile">モバイル</span>
+<div class="tech-role">クラウド上でiOSアプリをビルド。Macがなくてもアプリをビルドできる</div>
+<div class="tech-explain">💡 要するに：Expoが提供するクラウドビルドサービス。自分のPCではなくクラウドでアプリをビルドする。</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>Sanpos</h3><div class="desc">散歩ルートを共有できるソーシャル散歩アプリ</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">散歩記録</span><span class="flow-arrow">→</span>
+<span class="flow-node mobile">Expo (GPS)</span><span class="flow-arrow">→</span>
+<span class="flow-node back">Supabase (Auth + DB)</span><span class="flow-arrow">→</span>
+<span class="flow-node front">公開タイムライン</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">Supabase</span><span class="tech-tag tag-back">バック</span>
+<div class="tech-role">ユーザー認証（Auth）、散歩データの保存（PostgreSQL）、写真ストレージ、リアルタイム同期</div>
+<div class="tech-explain">💡 要するに：Firebase（Google）のオープンソース版。認証・データベース・ストレージが全部入りのバックエンド。</div>
+</div>
+<div class="tech-item">
+<span class="tech-name">Row Level Security (RLS)</span><span class="tech-tag tag-back">バック</span>
+<div class="tech-role">「自分の散歩記録は自分だけが編集できる」などのアクセス制御をDB側で設定</div>
+<div class="tech-explain">💡 要するに：データベースの行ごとに「誰が読めるか・書けるか」を制御する仕組み。セキュリティの要。</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>MY RANKING</h3><div class="desc">自分だけのランキングを作成・管理できるアプリ</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">ランキング作成</span><span class="flow-arrow">→</span>
+<span class="flow-node front">React</span><span class="flow-arrow">→</span>
+<span class="flow-node back">APIサーバー</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">React</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">ランキングの作成・編集・並べ替えUI</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>necoo</h3><div class="desc">猫の飼い主向けSNS・コミュニティアプリ</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">投稿・閲覧</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Next.js</span><span class="flow-arrow">→</span>
+<span class="flow-node back">バックエンド</span><span class="flow-arrow">→</span>
+<span class="flow-node front">フィード表示</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">Next.js</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">猫の投稿フィード、プロフィール、BGM再生などの画面を構築</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>台湾レストランガイド</h3><div class="desc">台湾の飲食店情報をまとめたガイドアプリ</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">検索・閲覧</span><span class="flow-arrow">→</span>
+<span class="flow-node front">フロントエンド</span><span class="flow-arrow">→</span>
+<span class="flow-node back">店舗データ</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">レストランデータベース</span><span class="tech-tag tag-back">バック</span>
+<div class="tech-role">台湾の飲食店情報を管理・検索</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>体重記録Bot</h3><div class="desc">LINEで体重を記録・管理するチャットボット</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node user">LINE メッセージ</span><span class="flow-arrow">→</span>
+<span class="flow-node api">LINE Messaging API</span><span class="flow-arrow">→</span>
+<span class="flow-node back">サーバー処理</span><span class="flow-arrow">→</span>
+<span class="flow-node back">データ保存</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">LINE Messaging API</span><span class="tech-tag tag-api">API</span>
+<div class="tech-role">LINEのトーク画面でユーザーのメッセージを受け取り、返信を送る</div>
+<div class="tech-explain">💡 要するに：LINEの公式アカウント（Bot）を作って、ユーザーとメッセージのやり取りをプログラムで制御するAPI。</div>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="accordion">
+<div class="acc-header"><div><h3>SKILL GALAXY</h3><div class="desc">スキルセットを銀河のようなインタラクティブマップで可視化</div></div><span class="arrow">▼</span></div>
+<div class="acc-body"><div class="acc-inner">
+<div class="flow-section"><h4>🔀 データの流れ</h4>
+<div class="flow-row">
+<span class="flow-node back">スキルデータ</span><span class="flow-arrow">→</span>
+<span class="flow-node front">D3.js Force Simulation</span><span class="flow-arrow">→</span>
+<span class="flow-node front">SVG描画</span>
+</div>
+</div>
+<div class="tech-list">
+<div class="tech-item">
+<span class="tech-name">D3.js Force Simulation</span><span class="tech-tag tag-front">フロント</span>
+<div class="tech-role">スキルノードを物理シミュレーション（引力・反発力）で配置し、銀河のように表現</div>
+<div class="tech-explain">💡 要するに：ノード（点）同士が引き合ったり反発したりする物理シミュレーション。ネットワーク図に使う。</div>
+</div>
+</div>
+</div></div>
+</div>
+
+</div>
+</div>
+
+<!-- TAB2: 用語辞書 -->
+<div id="tab2" class="tab-content">
+<div class="dict-item"><span class="tech-tag tag-back">バック</span>
+<div class="dict-term">Ably Realtime</div>
+<div class="dict-what">何？：リアルタイム通信をマネージドで提供するクラウドサービス。WebSocketサーバーを自分で建てなくていい。</div>
+<div class="dict-metaphor">たとえ：電話交換手のように、誰が誰に話しているかを管理してくれるサービス。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('NUISMO')">NUISMO</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-front">フロント</span>
+<div class="dict-term">Canvas 2D</div>
+<div class="dict-what">何？：ブラウザ上に自由に絵を描くためのAPI。ピクセル単位の描画が可能。</div>
+<div class="dict-metaphor">たとえ：ブラウザの中にある画用紙。座標を指定して線や図形を描ける。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('LIVE BOARD')">LIVE BOARD</a> <a onclick="goToProject('FACE MIRROR')">FACE MIRROR</a> <a onclick="goToProject('LIQUID WALL')">LIQUID WALL</a> <a onclick="goToProject('DARK SCANNER')">DARK SCANNER</a> <a onclick="goToProject('走馬灯')">走馬灯 SOMATO</a> <a onclick="goToProject('COLOR THIEF')">COLOR THIEF</a> <a onclick="goToProject('私を構成する')">私を構成する3つの言葉</a> <a onclick="goToProject('テープ貼る')">テープ貼るやつ</a> <a onclick="goToProject('散歩記録')">散歩記録</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-ext">拡張機能</span>
+<div class="dict-term">Chrome Extension (Manifest V3)</div>
+<div class="dict-what">何？：Chromeブラウザに独自機能を追加する仕組みの最新規格。Webページの内容を読み書きできる。</div>
+<div class="dict-metaphor">たとえ：ブラウザに追加できるオプションパーツ。工具箱に新しい道具を追加するイメージ。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('SHEET MOVIE')">SHEET MOVIE</a> <a onclick="goToProject('COLOR THIEF')">COLOR THIEF</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-ai">AI</span>
+<div class="dict-term">Claude API</div>
+<div class="dict-what">何？：Anthropic社のAIモデルをプログラムから呼び出すAPI。テキスト生成や翻訳、分析ができる。</div>
+<div class="dict-metaphor">たとえ：賢い秘書に電話で仕事を頼む窓口。「この文章を書いて」と頼むと書いてくれる。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('生成新聞')">生成新聞</a> <a onclick="goToProject('台灣生成新聞')">台灣生成新聞</a> <a onclick="goToProject('業界紙')">業界紙つくーる</a> <a onclick="goToProject('PROTOTIPER')">PROTOTIPER</a> <a onclick="goToProject('占星新聞')">占星新聞</a> <a onclick="goToProject('KANJI ME')">KANJI ME</a> <a onclick="goToProject('MONEY TRAIL')">MONEY TRAIL</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-back">バック</span>
+<div class="dict-term">Cloudflare Durable Objects</div>
+<div class="dict-what">何？：Cloudflare上でデータを持ち続けられるオブジェクト。WebSocket接続やルーム管理に使う。</div>
+<div class="dict-metaphor">たとえ：チャットルームの管理人。誰がいるか、何が起きたかを覚えている。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('SYNC PAD')">SYNC PAD</a> <a onclick="goToProject('LIVE BOARD')">LIVE BOARD</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-back">バック</span>
+<div class="dict-term">Cloudflare Workers</div>
+<div class="dict-what">何？：Cloudflareのエッジ（世界中のサーバー）で関数を動かすサーバーレスプラットフォーム。</div>
+<div class="dict-metaphor">たとえ：自分の店を持たずに間借りで商売する仕組み。必要な時だけ場所を使う。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('生成新聞')">生成新聞</a> <a onclick="goToProject('業界紙')">業界紙つくーる</a> <a onclick="goToProject('占星新聞')">占星新聞</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-front">フロント</span>
+<div class="dict-term">CSS Scroll-Driven Animations</div>
+<div class="dict-what">何？：スクロール位置に連動してCSSアニメーションを再生する機能。JSなしで演出可能。</div>
+<div class="dict-metaphor">たとえ：巻物を開くと絵が動き出す仕掛け絵本。スクロール量がアニメーションの進行度になる。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('SCROLL STAGE')">SCROLL STAGE</a> <a onclick="goToProject('STUDIO PAUL')">STUDIO PAUL</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-front">フロント</span>
+<div class="dict-term">D3.js</div>
+<div class="dict-what">何？：データを美しいグラフや図に変換するJavaScriptライブラリ。SVGを生成する。</div>
+<div class="dict-metaphor">たとえ：数字の羅列を美しいインフォグラフィックに変えてくれるデザイナー。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('MONEY TRAIL')">MONEY TRAIL</a> <a onclick="goToProject('FOLDER VISION')">FOLDER VISION</a> <a onclick="goToProject('SKILL GALAXY')">SKILL GALAXY</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-mobile">モバイル</span>
+<div class="dict-term">EAS Build</div>
+<div class="dict-what">何？：Expoが提供するクラウドビルドサービス。自分のPCでなくクラウドでアプリをビルド。</div>
+<div class="dict-metaphor">たとえ：自宅にオーブンがなくても、パン工場に焼いてもらえるサービス。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('散歩記録 Expo')">散歩記録 Expo版</a> <a onclick="goToProject('Sanpos')">Sanpos</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-mobile">モバイル</span>
+<div class="dict-term">expo-location</div>
+<div class="dict-what">何？：Expoアプリでスマホのgps情報を取得するライブラリ。バックグラウンドでも動く。</div>
+<div class="dict-metaphor">たとえ：アプリを閉じてもGPSが歩き続ける万歩計。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('散歩記録 Expo')">散歩記録 Expo版</a> <a onclick="goToProject('Sanpos')">Sanpos</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-front">フロント</span>
+<div class="dict-term">File System Access API</div>
+<div class="dict-what">何？：WebサイトからパソコンのファイルやフォルダにアクセスできるAPI。ユーザーの許可が必要。</div>
+<div class="dict-metaphor">たとえ：Webサイトにパソコンのフォルダを開く鍵を渡す仕組み。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('FOLDER VISION')">FOLDER VISION</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-gpu">GPU</span>
+<div class="dict-term">GLSL</div>
+<div class="dict-what">何？：GPU上で動くシェーダープログラムの言語。ピクセルごとの色計算を超高速に実行。</div>
+<div class="dict-metaphor">たとえ：GPUに渡す計算指示書。画面の何百万ピクセルを同時に計算する。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('FLUID NOISE')">FLUID NOISE</a> <a onclick="goToProject('STUDIO PAUL')">STUDIO PAUL</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-front">フロント</span>
+<div class="dict-term">html2canvas</div>
+<div class="dict-what">何？：HTMLで表示されている内容をスクリーンショットのように画像化するライブラリ。</div>
+<div class="dict-metaphor">たとえ：画面の写真を撮るカメラ。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('KANJI ME')">KANJI ME</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-front">フロント</span>
+<div class="dict-term">IndexedDB</div>
+<div class="dict-what">何？：ブラウザ内にあるデータベース。ページを閉じてもデータが残る。localStorageより大容量。</div>
+<div class="dict-metaphor">たとえ：ブラウザの中にある引き出し付きの書庫。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('VOICE MEMO')">VOICE MEMO</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-front">フロント</span>
+<div class="dict-term">Intersection Observer</div>
+<div class="dict-what">何？：要素が画面内に入ったかどうかを自動検知するAPI。</div>
+<div class="dict-metaphor">たとえ：店の入口センサー。お客が来たら「いらっしゃいませ」を自動で言う。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('SCROLL STAGE')">SCROLL STAGE</a> <a onclick="goToProject('STUDIO PAUL')">STUDIO PAUL</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-front">フロント</span>
+<div class="dict-term">Leaflet.js</div>
+<div class="dict-what">何？：Webページに地図を表示する軽量ライブラリ。Google Mapsの無料代替。</div>
+<div class="dict-metaphor">たとえ：WebサイトにGoogleマップのような地図を貼れるステッカー。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('散歩記録')">散歩記録 (Web版)</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-api">API</span>
+<div class="dict-term">LINE Messaging API</div>
+<div class="dict-what">何？：LINEの公式アカウント（Bot）を操作するAPI。</div>
+<div class="dict-metaphor">たとえ：LINEの公式アカウントの裏側で動く自動返信ロボット。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('体重記録')">体重記録Bot</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-media">メディア</span>
+<div class="dict-term">MediaRecorder</div>
+<div class="dict-what">何？：ブラウザ上の映像や音声を録画・録音してファイルにするAPI。</div>
+<div class="dict-metaphor">たとえ：ブラウザに内蔵されたビデオカメラ。画面の動きをそのまま動画にする。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('走馬灯')">走馬灯 SOMATO</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-ai">AI</span>
+<div class="dict-term">MediaPipe</div>
+<div class="dict-what">何？：Googleが作ったAIモデル集。顔、体、手をカメラ映像からリアルタイム検出。</div>
+<div class="dict-metaphor">たとえ：カメラ映像を見て「ここに顔がある」「手はここ」と教えてくれるAIアシスタント。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('BODY PARTICLES')">BODY PARTICLES</a> <a onclick="goToProject('FACE MIRROR')">FACE MIRROR</a> <a onclick="goToProject('LIQUID WALL')">LIQUID WALL</a> <a onclick="goToProject('DARK SCANNER')">DARK SCANNER</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-front">フロント</span>
+<div class="dict-term">Next.js</div>
+<div class="dict-what">何？：Reactベースのフレームワーク。ルーティング、サーバー処理、画像最適化などが最初から入っている。</div>
+<div class="dict-metaphor">たとえ：Reactが「設計図」なら、Next.jsは「設計図+電気配線+水道工事がセットの家」。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('台灣生成新聞')">台灣生成新聞</a> <a onclick="goToProject('KANJI ME')">KANJI ME</a> <a onclick="goToProject('MONEY TRAIL')">MONEY TRAIL</a> <a onclick="goToProject('NUISMO')">NUISMO</a> <a onclick="goToProject('We TASK')">We TASK</a> <a onclick="goToProject('KAFUN')">KAFUN PARAPARA</a> <a onclick="goToProject('走馬灯')">走馬灯 SOMATO</a> <a onclick="goToProject('PROTOTIPER')">PROTOTIPER</a> <a onclick="goToProject('私を構成する')">私を構成する3つの言葉</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-front">フロント</span>
+<div class="dict-term">React</div>
+<div class="dict-what">何？：UIを「コンポーネント」という部品に分けて組み立てるJavaScriptライブラリ。</div>
+<div class="dict-metaphor">たとえ：レゴブロックでページを組み立てる設計図。部品を組み合わせて画面を作る。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('生成新聞')">生成新聞</a> <a onclick="goToProject('PUNCH')">PUNCH PUNCH PUNCH</a> <a onclick="goToProject('WORLD LIVE')">WORLD LIVE CAMERAS</a> <a onclick="goToProject('テープ貼る')">テープ貼るやつ</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-mobile">モバイル</span>
+<div class="dict-term">React Native (Expo)</div>
+<div class="dict-what">何？：Reactの書き方でiOS/Androidアプリを作れるフレームワーク。</div>
+<div class="dict-metaphor">たとえ：Webサイトを作る腕前で、そのままスマホアプリも作れる魔法の翻訳機。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('散歩記録 Expo')">散歩記録 Expo版</a> <a onclick="goToProject('Sanpos')">Sanpos</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-api">API</span>
+<div class="dict-term">Resend</div>
+<div class="dict-what">何？：プログラムからメールを送るためのサービス。</div>
+<div class="dict-metaphor">たとえ：Gmailの送信ボタンをAPIで自動化したもの。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('生成新聞')">生成新聞</a> <a onclick="goToProject('業界紙')">業界紙つくーる</a> <a onclick="goToProject('台灣生成新聞')">台灣生成新聞</a> <a onclick="goToProject('PROTOTIPER')">PROTOTIPER</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-api">API</span>
+<div class="dict-term">RSS</div>
+<div class="dict-what">何？：Webサイトの更新情報を機械が読みやすい形式で配信する仕組み。</div>
+<div class="dict-metaphor">たとえ：新聞の切り抜きサービス。「このサイト更新されたよ」と自動で教えてくれる。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('生成新聞')">生成新聞</a> <a onclick="goToProject('台灣生成新聞')">台灣生成新聞</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-infra">インフラ</span>
+<div class="dict-term">Stripe</div>
+<div class="dict-what">何？：クレジットカード決済を代行するサービス。サブスク・一回払い対応。</div>
+<div class="dict-metaphor">たとえ：ネットのレジ係。お金のやり取りを全部やってくれる。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('生成新聞')">生成新聞</a> <a onclick="goToProject('業界紙')">業界紙つくーる</a> <a onclick="goToProject('KANJI ME')">KANJI ME</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-back">バック</span>
+<div class="dict-term">Supabase</div>
+<div class="dict-what">何？：認証・データベース・ストレージが全部入りのオープンソースバックエンド。</div>
+<div class="dict-metaphor">たとえ：Firebase（Google版）のオープンソース版。バックエンドの百貨店。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('Sanpos')">Sanpos</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-ai">AI</span>
+<div class="dict-term">TensorFlow.js</div>
+<div class="dict-what">何？：Googleの機械学習ライブラリのブラウザ版。カメラ映像をAIでリアルタイム分析。</div>
+<div class="dict-metaphor">たとえ：ブラウザの中で動くAIの頭脳。画像や音声を理解できる。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('AIR SYNTH')">AIR SYNTH</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-gpu">GPU</span>
+<div class="dict-term">Three.js</div>
+<div class="dict-what">何？：WebGLを簡単に使えるようにした3Dライブラリ。</div>
+<div class="dict-metaphor">たとえ：3Dの世界をJavaScriptで組み立てるレゴセット。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('SOUND COSMOS')">SOUND COSMOS</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-back">バック</span>
+<div class="dict-term">Upstash Redis / Vercel KV</div>
+<div class="dict-what">何？：サーバーレスで使えるキーバリューストア。データを高速に読み書きできる。</div>
+<div class="dict-metaphor">たとえ：超高速のメモ帳。名前で保存して、名前で取り出す。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('台灣生成新聞')">台灣生成新聞</a> <a onclick="goToProject('We TASK')">We TASK</a> <a onclick="goToProject('PROTOTIPER')">PROTOTIPER</a> <a onclick="goToProject('散歩記録')">散歩記録 (Web版)</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-infra">インフラ</span>
+<div class="dict-term">Vercel Cron</div>
+<div class="dict-what">何？：決まった時間にプログラムを自動実行する仕組み。</div>
+<div class="dict-metaphor">たとえ：目覚まし時計のように、毎朝6時にプログラムを起こす。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('台灣生成新聞')">台灣生成新聞</a> <a onclick="goToProject('PROTOTIPER')">PROTOTIPER</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-front">フロント</span>
+<div class="dict-term">View Transitions API</div>
+<div class="dict-what">何？：画面切り替えやDOM変更にスムーズなアニメーションを付けるAPI。</div>
+<div class="dict-metaphor">たとえ：場面転換にフェードやスライドを自動で付けてくれる映画編集機能。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('KANBAN FLOW')">KANBAN FLOW</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-media">メディア</span>
+<div class="dict-term">Web Audio API</div>
+<div class="dict-what">何？：ブラウザで音を生成・加工・再生する仕組み。シンセや可視化が作れる。</div>
+<div class="dict-metaphor">たとえ：ブラウザの中にある音楽スタジオ。音の波を自由に操れる。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('SYNC PAD')">SYNC PAD</a> <a onclick="goToProject('FLUID NOISE')">FLUID NOISE</a> <a onclick="goToProject('SOUND COSMOS')">SOUND COSMOS</a> <a onclick="goToProject('AIR SYNTH')">AIR SYNTH</a> <a onclick="goToProject('NUISMO')">NUISMO</a> <a onclick="goToProject('PIXEL DODGE')">PIXEL DODGE</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-front">フロント</span>
+<div class="dict-term">Web Components / Shadow DOM</div>
+<div class="dict-what">何？：HTMLの独自タグを作る仕組み。Shadow DOMで内部を外部から隔離できる。</div>
+<div class="dict-metaphor">たとえ：自分だけのHTMLタグを発明できる技術。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('COMPONENT KIT')">COMPONENT KIT</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-front">フロント</span>
+<div class="dict-term">Web Geolocation API</div>
+<div class="dict-what">何？：ブラウザからスマホのGPS位置情報を取得するAPI。</div>
+<div class="dict-metaphor">たとえ：「現在地を使用しますか？」で許可すると動くやつ。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('散歩記録')">散歩記録 (Web版)</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-gpu">GPU</span>
+<div class="dict-term">WebGL2</div>
+<div class="dict-what">何？：ブラウザからGPUを使って2D/3D描画する技術。</div>
+<div class="dict-metaphor">たとえ：ブラウザの中でゲーム機レベルのグラフィックを出すエンジン。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('FLUID NOISE')">FLUID NOISE</a> <a onclick="goToProject('STUDIO PAUL')">STUDIO PAUL</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-gpu">GPU</span>
+<div class="dict-term">WebGPU</div>
+<div class="dict-what">何？：WebGLの次世代版。Compute Shaderで汎用GPU計算もできる。</div>
+<div class="dict-metaphor">たとえ：GPUを「絵を描くだけ」でなく「計算マシン」としても使える技術。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('PARTICLE STORM')">PARTICLE STORM</a> <a onclick="goToProject('BODY PARTICLES')">BODY PARTICLES</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-back">バック</span>
+<div class="dict-term">WebRTC / PeerJS</div>
+<div class="dict-what">何？：サーバーを介さずブラウザ同士を直接つなぐP2P通信技術。</div>
+<div class="dict-metaphor">たとえ：郵便局を通さず隣の家に直接手紙を渡す仕組み。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('SYNC PAD')">SYNC PAD</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-front">フロント</span>
+<div class="dict-term">Web Share API</div>
+<div class="dict-what">何？：スマホの「共有」ボタンをWebサイトから呼び出す機能。</div>
+<div class="dict-metaphor">たとえ：スマホの共有メニューをWebサイトのボタンから開く鍵。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('KANJI ME')">KANJI ME</a> <a onclick="goToProject('私を構成する')">私を構成する3つの言葉</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-back">バック</span>
+<div class="dict-term">WebSocket</div>
+<div class="dict-what">何？：サーバーとブラウザをつなぎっぱなしにして双方向通信する仕組み。</div>
+<div class="dict-metaphor">たとえ：HTTPが「手紙のやり取り」なら、WebSocketは「電話をかけっぱなし」。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('LIVE BOARD')">LIVE BOARD</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-media">メディア</span>
+<div class="dict-term">Web Speech API</div>
+<div class="dict-what">何？：ブラウザ内蔵の音声認識機能。声をテキストに変換する。</div>
+<div class="dict-metaphor">たとえ：「OK Google」のブラウザ版。話した言葉がテキストになる。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('VOICE MEMO')">VOICE MEMO</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-front">フロント</span>
+<div class="dict-term">Web Workers</div>
+<div class="dict-what">何？：メインスレッドとは別に重い計算を実行するバックグラウンド処理。</div>
+<div class="dict-metaphor">たとえ：台所で料理しながら、別の人に洗い物を任せるイメージ。画面が固まらない。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('FRACTAL DIVE')">FRACTAL DIVE</a> <a onclick="goToProject('走馬灯')">走馬灯 SOMATO</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-gpu">GPU</span>
+<div class="dict-term">WGSL</div>
+<div class="dict-what">何？：WebGPU用のシェーダー言語。GLSLのWebGPU版。</div>
+<div class="dict-metaphor">たとえ：GPUへの「計算して」という指示書を書くための専用言語。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('PARTICLE STORM')">PARTICLE STORM</a> <a onclick="goToProject('BODY PARTICLES')">BODY PARTICLES</a></div>
+</div>
+
+<div class="dict-item"><span class="tech-tag tag-back">バック</span>
+<div class="dict-term">Workers KV</div>
+<div class="dict-what">何？：Cloudflareのキーバリューストア。名前で値を保存・取得する簡易DB。</div>
+<div class="dict-metaphor">たとえ：ロッカーに番号をつけて物を入れる仕組み。番号で取り出す。</div>
+<div class="dict-projects">使った場所：<a onclick="goToProject('業界紙')">業界紙つくーる</a> <a onclick="goToProject('占星新聞')">占星新聞</a></div>
+</div>
+</div>
+
+<!-- TAB3: 設計パターン集 -->
+<div id="tab3" class="tab-content">
+<div class="pattern">
+<h3>1. AIコンテンツ生成パイプライン</h3>
+<h4>パターン</h4>
+<div class="flow-section pattern-flow">
+<div class="flow-row">
+<span class="flow-node api">データ収集</span><span class="flow-arrow">→</span>
+<span class="flow-node ai">AI API呼び出し</span><span class="flow-arrow">→</span>
+<span class="flow-node back">整形・保存</span><span class="flow-arrow">→</span>
+<span class="flow-node front">表示 / 配信</span>
+</div>
+</div>
+<h4>使用例</h4>
+<ul>
+<li><strong>生成新聞</strong> — RSS・株価・天気を収集 → Claude APIで新聞記事を生成 → PWAで表示</li>
+<li><strong>台灣生成新聞</strong> — 台湾メディア8社をスキャン → 翻訳・要約 → Next.jsで表示</li>
+<li><strong>業界紙つくーる</strong> — アンケート回答 → web_search付きClaude → メール配信</li>
+<li><strong>PROTOTIPER</strong> — デザインスタイル選択 → Claude Sonnet → ギャラリー</li>
+<li><strong>占星新聞</strong> — 天気データ+星座 → Claude Haiku → パーソナライズ占い</li>
+</ul>
+<h4>変種</h4>
+<p><strong>リアルタイム推定</strong>（MONEY TRAIL：ユーザー入力のたびにAIを呼ぶ）vs <strong>バッチ生成</strong>（生成新聞：Cronで定時に一括生成）</p>
+<p>💡 ポイント：データを集めて → AIに渡して → 結果を見せる、という3ステップが基本形。「何のデータを集めるか」「AIに何を生成させるか」が変わるだけ。</p>
+</div>
+
+<div class="pattern">
+<h3>2. カメラ → AI → ビジュアル</h3>
+<h4>パターン</h4>
+<div class="flow-section pattern-flow">
+<div class="flow-row">
+<span class="flow-node user">getUserMedia</span><span class="flow-arrow">→</span>
+<span class="flow-node ai">MediaPipe / TensorFlow.js</span><span class="flow-arrow">→</span>
+<span class="flow-node front">Canvas / WebGPU描画</span>
+</div>
+</div>
+<h4>使用例</h4>
+<ul>
+<li><strong>AIR SYNTH</strong> — 手の検出 → 位置を音程に変換 → シンセ音生成</li>
+<li><strong>FACE MIRROR</strong> — 顔468点検出 → 4種類のエフェクト描画</li>
+<li><strong>LIQUID WALL</strong> — 人物分離 → 背景を流体に置換</li>
+<li><strong>BODY PARTICLES</strong> — 体33点検出 → 20万パーティクルをGPU制御</li>
+<li><strong>DARK SCANNER</strong> — 顔+体+物体の3モデル同時実行 → HUDオーバーレイ</li>
+</ul>
+<p>💡 ポイント：映像のフレーム（1秒に30〜60回）ごとにAI推論→描画のループを回す。ループが速いほど滑らか。</p>
+</div>
+
+<div class="pattern">
+<h3>3. リアルタイム同期</h3>
+<h4>パターン</h4>
+<div class="flow-section pattern-flow">
+<div class="flow-row">
+<span class="flow-node user">ユーザー入力</span><span class="flow-arrow">→</span>
+<span class="flow-node back">通信層</span><span class="flow-arrow">→</span>
+<span class="flow-node user">全員に反映</span>
+</div>
+</div>
+<h4>比較表</h4>
+<ul>
+<li><strong>P2P（WebRTC）</strong> — SYNC PAD: サーバー不要で直接つなぐ。少人数向き。遅延が最小</li>
+<li><strong>サーバー経由（WebSocket）</strong> — LIVE BOARD: サーバーが中継。多人数対応。自前構築が必要</li>
+<li><strong>マネージド（Ably）</strong> — NUISMO: サービスに丸投げ。Presence(在室管理)付き。開発が楽だが有料</li>
+</ul>
+<p>💡 ポイント：「誰と誰をつなぐか」「何人つなぐか」で最適な方式が変わる。少人数ならP2P、多人数ならサーバー経由。</p>
+</div>
+
+<div class="pattern">
+<h3>4. Stripe決済フロー</h3>
+<h4>パターン</h4>
+<div class="flow-section pattern-flow">
+<div class="flow-row">
+<span class="flow-node front">LP（商品紹介）</span><span class="flow-arrow">→</span>
+<span class="flow-node infra">Stripe Checkout</span><span class="flow-arrow">→</span>
+<span class="flow-node back">Webhook受信</span><span class="flow-arrow">→</span>
+<span class="flow-node back">サービス有効化</span>
+</div>
+</div>
+<h4>使用例</h4>
+<ul>
+<li><strong>生成新聞</strong> — 月額$3サブスクリプション → 新聞閲覧+メール配信の有効化</li>
+<li><strong>業界紙つくーる</strong> — 決済完了 → アンケート → AI生成 → メール配信開始</li>
+<li><strong>KANJI ME</strong> — 追加機能のアンロック</li>
+</ul>
+<p>💡 ポイント：自分で決済画面を作る必要なし。Stripeの画面に飛ばして、「支払い完了」の通知（Webhook）を待つだけ。</p>
+</div>
+
+<div class="pattern">
+<h3>5. ブラウザ完結型ツール</h3>
+<h4>パターン</h4>
+<div class="flow-section pattern-flow">
+<div class="flow-row">
+<span class="flow-node user">ユーザー操作</span><span class="flow-arrow">→</span>
+<span class="flow-node front">ブラウザAPI</span><span class="flow-arrow">→</span>
+<span class="flow-node front">結果表示 / エクスポート</span>
+</div>
+</div>
+<h4>使用例</h4>
+<ul>
+<li><strong>FOLDER VISION</strong> — File System Access APIでフォルダ読取 → D3.jsで可視化</li>
+<li><strong>COLOR THIEF</strong> — Canvas APIでピクセル解析 → カラーパレット表示</li>
+<li><strong>VOICE MEMO</strong> — Web Speech APIで音声認識 → IndexedDBに保存</li>
+<li><strong>走馬灯 SOMATO</strong> — Canvas + MediaRecorderで動画生成</li>
+<li><strong>テープ貼るやつ</strong> — Canvas上でテープ配置 → PNG出力</li>
+</ul>
+<p>💡 ポイント：サーバーが不要なのでホスティングコストがゼロ。GitHub Pagesに置くだけで動く。ブラウザAPIの組み合わせで十分なユースケースは意外と多い。</p>
+</div>
+
+<div class="pattern">
+<h3>6. GPU並列処理</h3>
+<h4>パターン</h4>
+<div class="flow-section pattern-flow">
+<div class="flow-row">
+<span class="flow-node front">CPU (初期化)</span><span class="flow-arrow">→</span>
+<span class="flow-node gpu">GPU転送</span><span class="flow-arrow">→</span>
+<span class="flow-node gpu">Compute Shader (並列計算)</span><span class="flow-arrow">→</span>
+<span class="flow-node gpu">Render Pipeline (描画)</span>
+</div>
+</div>
+<h4>使用例</h4>
+<ul>
+<li><strong>PARTICLE STORM</strong> — 100万パーティクルの位置計算+描画をすべてGPU上で実行</li>
+<li><strong>BODY PARTICLES</strong> — AIが検出した体の位置に20万パーティクルをGPUで引き寄せる</li>
+</ul>
+<p>💡 ポイント：CPUは「1つの複雑な計算が得意」、GPUは「同じ単純な計算を何百万個も同時にやるのが得意」。パーティクルのように同じ計算（位置更新）を大量に繰り返す処理はGPUの独壇場。</p>
+</div>
+
+<div class="pattern">
+<h3>7. Cron自動化</h3>
+<h4>パターン</h4>
+<div class="flow-section pattern-flow">
+<div class="flow-row">
+<span class="flow-node infra">定時トリガー</span><span class="flow-arrow">→</span>
+<span class="flow-node api">データ取得</span><span class="flow-arrow">→</span>
+<span class="flow-node back">処理・保存</span><span class="flow-arrow">→</span>
+<span class="flow-node front">表示 / 配信</span>
+</div>
+</div>
+<h4>使用例</h4>
+<ul>
+<li><strong>台灣生成新聞</strong> — Vercel Cronで毎日定時にニュース生成</li>
+<li><strong>PROTOTIPER</strong> — Vercel Cronで毎日新しいプロトタイプを自動生成</li>
+<li><strong>生成新聞</strong> — Cloudflare Workers Cronで朝刊6時・夕刊17時に自動生成</li>
+</ul>
+<p>💡 ポイント：人の操作なしで毎日コンテンツが更新される仕組み。一度作ったら放置でOK。ただしAPI料金には注意。</p>
+</div>
+
+<div class="pattern">
+<h3>8. モバイルアプリ化</h3>
+<h4>パターン</h4>
+<div class="flow-section pattern-flow">
+<div class="flow-row">
+<span class="flow-node front">Web版で検証</span><span class="flow-arrow">→</span>
+<span class="flow-node mobile">React Native (Expo) で移植</span><span class="flow-arrow">→</span>
+<span class="flow-node mobile">ネイティブ機能追加</span>
+</div>
+</div>
+<h4>使用例</h4>
+<ul>
+<li><strong>散歩記録 (Web)</strong> → <strong>散歩記録 Expo版</strong> → <strong>Sanpos</strong></li>
+</ul>
+<h4>進化の過程</h4>
+<ul>
+<li>Web版：Geolocation API + Leaflet.jsで基本機能を検証</li>
+<li>Expo版：expo-locationでバックグラウンドGPSトラッキングを追加</li>
+<li>Sanpos：Supabaseで認証・DB追加、ソーシャル機能（公開タイムライン）を実装</li>
+</ul>
+<p>💡 ポイント：Reactの知識がそのまま使える。Web→ネイティブの移植コストが低い。ネイティブAPIgy（GPS・カメラ・プッシュ通知）はExpoのライブラリで簡単に追加できる。</p>
+</div>
+</div>
+
+</div>
+
+<script>
+// Tab switching
+document.querySelectorAll('.tabs button').forEach(btn=>{
+btn.addEventListener('click',()=>{
+document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+btn.classList.add('active');
+document.getElementById(btn.dataset.tab).classList.add('active');
+});
+});
+
+// Accordion
+document.addEventListener('click',e=>{
+const header=e.target.closest('.acc-header');
+if(!header)return;
+header.parentElement.classList.toggle('open');
+});
+
+// Search
+document.getElementById('searchInput').addEventListener('input',e=>{
+const q=e.target.value.toLowerCase();
+// Tab1: accordions
+document.querySelectorAll('.accordion').forEach(a=>{
+const text=a.textContent.toLowerCase();
+a.classList.toggle('hidden',q&&!text.includes(q));
+});
+// Tab2: dict items
+document.querySelectorAll('.dict-item').forEach(d=>{
+const text=d.textContent.toLowerCase();
+d.classList.toggle('hidden',q&&!text.includes(q));
+});
+// Tab3: patterns
+document.querySelectorAll('.pattern').forEach(p=>{
+const text=p.textContent.toLowerCase();
+p.classList.toggle('hidden',q&&!text.includes(q));
+});
+});
+
+// Navigate from dictionary to project
+function goToProject(name){
+document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+document.querySelector('[data-tab="tab1"]').classList.add('active');
+document.getElementById('tab1').classList.add('active');
+document.querySelectorAll('.accordion').forEach(a=>{
+if(a.querySelector('h3')&&a.querySelector('h3').textContent.includes(name)){
+a.classList.add('open');
+setTimeout(()=>a.scrollIntoView({behavior:'smooth',block:'start'}),100);
+}
+});
+}
+</script>
+</body>
+</html>
