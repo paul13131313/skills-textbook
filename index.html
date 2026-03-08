@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>プロジェクト逆引き技術教科書</title>
+<title>AI TECH TEXT</title>
 <meta name="description" content="40+プロジェクトの技術を逆引きで学べるインタラクティブ教科書">
 <link rel="icon" type="image/png" href="favicon.png">
-<meta property="og:title" content="プロジェクト逆引き技術教科書">
-<meta property="og:description" content="40+プロジェクトで使った技術を逆引きで学ぶインタラクティブ教科書">
+<meta property="og:title" content="AI TECH TEXT">
+<meta property="og:description" content="40+プロジェクトの技術を逆引きで学ぶ">
 <meta property="og:image" content="https://paul13131313.github.io/skills-textbook/ogp.png">
 <meta property="og:url" content="https://paul13131313.github.io/skills-textbook/">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="プロジェクト逆引き技術教科書">
-<meta name="twitter:description" content="40+プロジェクトで使った技術を逆引きで学ぶインタラクティブ教科書">
+<meta name="twitter:title" content="AI TECH TEXT">
+<meta name="twitter:description" content="40+プロジェクトの技術を逆引きで学ぶ">
 <meta name="twitter:image" content="https://paul13131313.github.io/skills-textbook/ogp.png">
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <link rel="manifest" href="manifest.json">
@@ -124,6 +124,15 @@ a{color:var(--accent);text-decoration:none}
 .pattern ul{padding-left:20px}
 .pattern .pattern-flow{margin:10px 0}
 
+/* Prompt Copy Block */
+.prompt-block{margin-top:16px;position:relative}
+.prompt-label{font-size:.75rem;color:var(--accent);font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.prompt-box{background:#0d0e14;border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:.78rem;line-height:1.6;color:var(--text);white-space:pre-wrap;word-break:break-all;position:relative;cursor:pointer;transition:.15s}
+.prompt-box:hover{border-color:var(--accent)}
+.prompt-box::after{content:'📋 コピー';position:absolute;top:8px;right:10px;font-size:.7rem;color:var(--text2);font-family:'Noto Sans JP',sans-serif;opacity:.7;transition:.15s}
+.prompt-box:hover::after{opacity:1;color:var(--accent)}
+.prompt-box.copied::after{content:'✅ コピー済み';color:var(--infra)}
+
 /* Responsive */
 @media(max-width:640px){
 .tabs button{font-size:.78rem;padding:10px 4px}
@@ -139,7 +148,7 @@ a{color:var(--accent);text-decoration:none}
 
 <header class="site-header">
 <div class="container">
-<h1>プロジェクト逆引き技術教科書</h1>
+<h1>AI TECH TEXT</h1>
 <p>40+プロジェクトで使った技術を逆引きで学ぶ</p>
 </div>
 </header>
@@ -1696,6 +1705,12 @@ a{color:var(--accent);text-decoration:none}
 <h4>変種</h4>
 <p><strong>リアルタイム推定</strong>（MONEY TRAIL：ユーザー入力のたびにAIを呼ぶ）vs <strong>バッチ生成</strong>（生成新聞：Cronで定時に一括生成）</p>
 <p>💡 ポイント：データを集めて → AIに渡して → 結果を見せる、という3ステップが基本形。「何のデータを集めるか」「AIに何を生成させるか」が変わるだけ。</p>
+<div class="prompt-block">
+<div class="prompt-label">📎 Claudeへの指示テンプレート</div>
+<div class="prompt-box">「AIコンテンツ生成パイプライン」構成で作って。
+外部データ（RSS/API等）→ Cloudflare Workers or Next.js API Routeで収集 → Claude APIに渡して文章生成 → KV/Redisにキャッシュ → フロントで表示。
+Cronで定時自動生成にして。Stripe決済+Resendメール配信もつけて。</div>
+</div>
 </div>
 
 <div class="pattern">
@@ -1717,6 +1732,12 @@ a{color:var(--accent);text-decoration:none}
 <li><strong>DARK SCANNER</strong> — 顔+体+物体の3モデル同時実行 → HUDオーバーレイ</li>
 </ul>
 <p>💡 ポイント：映像のフレーム（1秒に30〜60回）ごとにAI推論→描画のループを回す。ループが速いほど滑らか。</p>
+<div class="prompt-block">
+<div class="prompt-label">📎 Claudeへの指示テンプレート</div>
+<div class="prompt-box">「カメラ→AI→ビジュアル」構成で作って。
+getUserMediaでカメラ取得 → MediaPipe（Face/Pose/Hand）でリアルタイム検出 → 検出結果をCanvas 2DまたはWebGPUで描画。
+requestAnimationFrameでフレームループ回して60FPS維持。</div>
+</div>
 </div>
 
 <div class="pattern">
@@ -1736,6 +1757,14 @@ a{color:var(--accent);text-decoration:none}
 <li><strong>マネージド（Ably）</strong> — NUISMO: サービスに丸投げ。Presence(在室管理)付き。開発が楽だが有料</li>
 </ul>
 <p>💡 ポイント：「誰と誰をつなぐか」「何人つなぐか」で最適な方式が変わる。少人数ならP2P、多人数ならサーバー経由。</p>
+<div class="prompt-block">
+<div class="prompt-label">📎 Claudeへの指示テンプレート</div>
+<div class="prompt-box">「リアルタイム同期」構成で作って。
+少人数P2P → PeerJS(WebRTC)で直接接続。
+多人数サーバー経由 → Cloudflare Durable Objects + WebSocketで中継。
+マネージド → Ably RealtimeのPresence+PubSubで在室管理+メッセージ配信。
+ユーザーの操作を全員にリアルタイム反映して。</div>
+</div>
 </div>
 
 <div class="pattern">
@@ -1756,6 +1785,12 @@ a{color:var(--accent);text-decoration:none}
 <li><strong>KANJI ME</strong> — 追加機能のアンロック</li>
 </ul>
 <p>💡 ポイント：自分で決済画面を作る必要なし。Stripeの画面に飛ばして、「支払い完了」の通知（Webhook）を待つだけ。</p>
+<div class="prompt-block">
+<div class="prompt-label">📎 Claudeへの指示テンプレート</div>
+<div class="prompt-box">「Stripe決済フロー」を組み込んで。
+LP → Stripe Checkout（セッション作成）→ 決済完了 → Webhook受信（署名検証）→ ユーザーのサービス有効化。
+サブスクならStripe Customer Portal（プラン変更・解約）もつけて。</div>
+</div>
 </div>
 
 <div class="pattern">
@@ -1777,6 +1812,12 @@ a{color:var(--accent);text-decoration:none}
 <li><strong>テープ貼るやつ</strong> — Canvas上でテープ配置 → PNG出力</li>
 </ul>
 <p>💡 ポイント：サーバーが不要なのでホスティングコストがゼロ。GitHub Pagesに置くだけで動く。ブラウザAPIの組み合わせで十分なユースケースは意外と多い。</p>
+<div class="prompt-block">
+<div class="prompt-label">📎 Claudeへの指示テンプレート</div>
+<div class="prompt-box">「ブラウザ完結型」で作って。サーバー不要、GitHub Pagesデプロイ。
+使えるAPI: File System Access API（ファイル読み書き）、IndexedDB（永続保存）、Canvas API（画像加工・出力）、Web Speech API（音声認識）、MediaRecorder（録画・録音）。
+外部通信なし、全処理をブラウザ内で完結させて。</div>
+</div>
 </div>
 
 <div class="pattern">
@@ -1796,6 +1837,13 @@ a{color:var(--accent);text-decoration:none}
 <li><strong>BODY PARTICLES</strong> — AIが検出した体の位置に20万パーティクルをGPUで引き寄せる</li>
 </ul>
 <p>💡 ポイント：CPUは「1つの複雑な計算が得意」、GPUは「同じ単純な計算を何百万個も同時にやるのが得意」。パーティクルのように同じ計算（位置更新）を大量に繰り返す処理はGPUの独壇場。</p>
+<div class="prompt-block">
+<div class="prompt-label">📎 Claudeへの指示テンプレート</div>
+<div class="prompt-box">「GPU並列処理」構成で作って。
+WebGPU使用。Compute Shaderでパーティクルの位置・速度を並列計算 → Render Pipelineで描画。
+バッファはStorage Buffer（読み書き両用）でping-pong。
+WGSL で @compute @workgroup_size(256) のシェーダー書いて。</div>
+</div>
 </div>
 
 <div class="pattern">
@@ -1816,6 +1864,13 @@ a{color:var(--accent);text-decoration:none}
 <li><strong>生成新聞</strong> — Cloudflare Workers Cronで朝刊6時・夕刊17時に自動生成</li>
 </ul>
 <p>💡 ポイント：人の操作なしで毎日コンテンツが更新される仕組み。一度作ったら放置でOK。ただしAPI料金には注意。</p>
+<div class="prompt-block">
+<div class="prompt-label">📎 Claudeへの指示テンプレート</div>
+<div class="prompt-box">「Cron自動化」構成にして。
+Vercel Cron（vercel.json の crons）or Cloudflare Workers Cron Trigger で定時実行。
+API Route内でデータ取得→処理→KV/DBに保存。
+フロントはキャッシュから読むだけ。人の操作なしで毎日更新される構成。</div>
+</div>
 </div>
 
 <div class="pattern">
@@ -1839,6 +1894,13 @@ a{color:var(--accent);text-decoration:none}
 <li>Sanpos：Supabaseで認証・DB追加、ソーシャル機能（公開タイムライン）を実装</li>
 </ul>
 <p>💡 ポイント：Reactの知識がそのまま使える。Web→ネイティブの移植コストが低い。ネイティブAPI（GPS・カメラ・プッシュ通知）はExpoのライブラリで簡単に追加できる。</p>
+<div class="prompt-block">
+<div class="prompt-label">📎 Claudeへの指示テンプレート</div>
+<div class="prompt-box">「モバイルアプリ化」構成で作って。
+React Native + Expo SDK使用。expo-locationでGPS、expo-cameraでカメラ。
+バックエンドはSupabase（Auth + PostgreSQL + Storage + Realtime）。
+RLSでアクセス制御。EAS Buildでクラウドビルド。</div>
+</div>
 </div>
 </div>
 
@@ -1879,6 +1941,16 @@ d.classList.toggle('hidden',q&&!text.includes(q));
 document.querySelectorAll('.pattern').forEach(p=>{
 const text=p.textContent.toLowerCase();
 p.classList.toggle('hidden',q&&!text.includes(q));
+});
+});
+
+// Copy prompt
+document.addEventListener('click',e=>{
+const box=e.target.closest('.prompt-box');
+if(!box)return;
+navigator.clipboard.writeText(box.textContent.trim()).then(()=>{
+box.classList.add('copied');
+setTimeout(()=>box.classList.remove('copied'),2000);
 });
 });
 
